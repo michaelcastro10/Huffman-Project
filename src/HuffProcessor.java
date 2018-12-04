@@ -58,24 +58,40 @@ public class HuffProcessor {
 	}
 	
 	public void writeCompressedBits(String[] codings, BitInputStream in, BitOutputStream out) {
-		
 		while (true){
-			int bits = in.readBits(BITS_PER_WORD);
-			if (bits == -1) {
-				String code = codings[PSEUDO_EOF];
-				out.writeBits(code.length(), Integer.parseInt(code,2));
-			}
-				String code = codings[bits];
-				out.writeBits(code.length(), Integer.parseInt(code,2));
+			int val = in.readBits(BITS_PER_WORD);
+			if (val == -1) break;
+			String code = codings[val];
+			out.writeBits(code.length(), Integer.parseInt(code,2));
+		}
+		
+		String code = codings[PSEUDO_EOF];
+		out.writeBits(code.length(), Integer.parseInt(code,2));
+		
+	}
+		
+		//while (true){
+			//int bits = in.readBits(BITS_PER_WORD);
+			//if (bits == -1) { break;
+			//String code = codings[bits];
+			//	out.writeBits(code.length(), Integer.parseInt(code,2));
+			//}
+	
+			//	String code = codings[bits];
+			//	out.writeBits(code.length(), Integer.parseInt(code,2));
+		//}
+				
 				//if (code == null || code == null) { // leaf node
 					//if (current.myValue == PSEUDO_EOF) {
 						//break;	// out of the loop
-					//} // you write 8
+					//}
+					//out.writeBits(code.length(), Integer.parseInt(code,2)); // you write 8
 					//current = root; // start back after leaf
-				}
-			}
 		
-		
+			
+				//}
+
+
 	public void writeHeader(HuffNode root, BitOutputStream out) { 
 		if (root == null) return;
 		// if not a leaf, write a single bit of zero
@@ -110,24 +126,21 @@ public class HuffProcessor {
 
 	public HuffNode makeTreeFromCounts(int[] counts) {
 		PriorityQueue<HuffNode> pq = new PriorityQueue<>();
-		for(int i = 0; i < counts.length; i++) {
-			if (counts[i] > 0) {
+		for(int i=0; i<counts.length; i++) {
+			if (counts[i]>0)
 				pq.add(new HuffNode(i,counts[i],null,null));
-			}
-			while (pq.size() > 1) {
-				 HuffNode left = pq.remove();
-				 HuffNode right = pq.remove();
-				 //int vals = left.myValue + right.myValue;
-				 //int weig = left.myWeight + right.myWeight;
-				 HuffNode t = new HuffNode(left.myValue + right.myValue,left.myWeight + right.myWeight,left,right);
-				 pq.add(t);
+		}
 
-			}
-
+		while (pq.size() > 1) {
+			HuffNode left = pq.remove();
+			HuffNode right = pq.remove();
+			int weight = left.myWeight+right.myWeight;
+			HuffNode t = new HuffNode(0, weight, left, right);
+			pq.add(t);
 		}
 		HuffNode root = pq.remove();
-		return root;
 
+		return root;
 	}
 
 	public int[] readForCounts(BitInputStream in) {
