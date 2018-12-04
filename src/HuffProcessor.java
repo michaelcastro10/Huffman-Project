@@ -48,7 +48,9 @@ public class HuffProcessor {
 			if (val == -1) break;
 			out.writeBits(BITS_PER_WORD, val);
 		}
+		out.close();
 	}
+	
 	/**
 	 * Decompresses a file. Output file must be identical bit-by-bit to the
 	 * original.
@@ -60,7 +62,7 @@ public class HuffProcessor {
 	 */
 	public void decompress(BitInputStream in, BitOutputStream out){
 		
-		int bits = in.readBits(BITS_PER_WORD);
+		int bits = in.readBits(BITS_PER_INT);
 		if (bits != HUFF_TREE) {
 			throw new HuffException ("illegal header starts with" +bits);
 		}
@@ -68,52 +70,55 @@ public class HuffProcessor {
 		HuffNode root = readTreeHeader(in);
 		readCompressedBits(root,in,out);
 		out.close();
-		
-
-		//while (true){
-			//int val = in.readBits(BITS_PER_WORD);
-			//if (val == -1) break;
-			//out.writeBits(BITS_PER_WORD, val);
 		}
-	private void readCompressedBits(HuffNode root, BitInputStream in, BitOutputStream out) {
+	
+	public void readCompressedBits(HuffNode root, BitInputStream in, BitOutputStream out) {
+		
 		HuffNode current = root;
-		while (true){
+		while (true)
+			{
 			int bits = in.readBits(1);
 			if (bits == -1) {
 				throw new HuffException("bad input, no PSEUDO_EOF");
 			}
 			else {
-				if (bits == 0) current = current.myLeft;
-				else current = current.myRight;
-			}
+				if (bits == 0) 
+					current = current.myLeft;
+				else 
+					current = current.myRight;
 			
-			if (current.myValue != -1) { // for current to be a leaf node, it cannot be negative one 
-				if (current.myValue == PSEUDO_EOF)
-					break;	
+				if (current.myLeft == null && current.myRight == null) { // leaf node
+					if (current.myValue == PSEUDO_EOF) {
+						break;	// out of the loop
+					}
 				else {
-					out.writeBits(9, current.myValue);
-					current = root;
-			}
-			
-			bits = in.readBits(1);
-		}
+					out.writeBits(BITS_PER_WORD, current.myValue); // you write 8
+					current = root; // start back after leaf
 		
-		}}
-	
-	public HuffNode readTreeHeader(BitInputStream in) {
-		if (in.readBits(1) == -1) {
-			throw new HuffException ("illegal header starts with");
+			
+				}
+			}
 		}
-		if (in.readBits(1) == 0) {
+	}
+}
+		
+
+	public HuffNode readTreeHeader(BitInputStream in) {
+		int bits = in.readBits(1);
+		if (bits == -1) {
+			throw new HuffException ("bad input");
+		}
+		if (bits == 0) {
 			HuffNode left = readTreeHeader(in);
 			HuffNode right = readTreeHeader(in);
 			return new HuffNode(0,0,left,right);
-		
-		} else {
-			int value = in.readBits(9);
-			return new HuffNode(value, 0, null, null);
 		}
 		
+		 else {
+			int value = in.readBits(BITS_PER_WORD+1);
+			return new HuffNode(value, 0, null, null);
+		}
+	
 	}
 	
 }
