@@ -59,8 +59,7 @@ public class HuffProcessor {
 	
 	private void writeCompressedBits(String[] codings, BitInputStream in, BitOutputStream out) {
 		
-		while (true)
-			{
+		while (true){
 			int bits = in.readBits(BITS_PER_WORD);
 			if (bits == -1) {
 				String code = codings[PSEUDO_EOF];
@@ -81,7 +80,8 @@ public class HuffProcessor {
 			}
 		}
 		
-	private void writeHeader(HuffNode root, BitOutputStream out) {
+	private void writeHeader(HuffNode root, BitOutputStream out) { 
+		if (root == null) return;
 		// if not a leaf, write a single bit of zero
 		if(root.myLeft == null && root.myRight == null) {
 			int sum = BITS_PER_WORD + 1;
@@ -96,19 +96,19 @@ public class HuffProcessor {
 
 	private String[] makeCodingsFromTree(HuffNode root) {
 		 String[] encodings = new String[ALPH_SIZE + 1];
-		  codingHelper(root,"",encodings);
-
-		return encodings;
+		 codingHelper(root,"",encodings);
+		 return encodings;
 	}
 
-	private void codingHelper(HuffNode root, String string, String[] encodings) {
+	private void codingHelper(HuffNode root, String path, String[] encodings) {
+		if (root == null) return;
 		if(root.myLeft == null && root.myRight == null) {
-			encodings[root.myValue] = string;
+			encodings[root.myValue] = path;
 			return;
 		
 		}
-		codingHelper(root.myLeft, string+"0", encodings);
-		codingHelper(root.myRight, string+"1", encodings);
+		codingHelper(root.myLeft, path+"0", encodings);
+		codingHelper(root.myRight, path+"1", encodings);
 		
 	}
 
@@ -121,9 +121,9 @@ public class HuffProcessor {
 			while (pq.size() > 1) {
 				 HuffNode left = pq.remove();
 				 HuffNode right = pq.remove();
-				 int vals = left.myValue + right.myValue;
-				 int weig = left.myWeight + right.myWeight;
-				 HuffNode t = new HuffNode(vals,weig,left,right);
+				 //int vals = left.myValue + right.myValue;
+				 //int weig = left.myWeight + right.myWeight;
+				 HuffNode t = new HuffNode(left.myValue + right.myValue,left.myWeight + right.myWeight,left,right);
 				 pq.add(t);
 
 			}
@@ -138,17 +138,14 @@ public class HuffProcessor {
 		//Determine the frequency of every eight-bit character/chunk in the file being compressed
 		int [] frequency = new int[ALPH_SIZE +1];
 		//  You'll need explicitly set freq[PSEUDO_EOF] = 1 for the array to indicate there is one occurrence of the value PSEUDO_EOF. 
-		frequency[PSEUDO_EOF] = 1;
 		
 		while (true) {
 			int bits = in.readBits(BITS_PER_WORD);
 			if (bits == -1) {
-				break;
-			} else {
+				break; }
 				frequency[bits]++;
 			}
-		}
-		
+		frequency[PSEUDO_EOF] = 1;
 		return frequency;
 	}
 
