@@ -64,14 +64,14 @@ public class HuffProcessor {
 			if (bits == -1) {
 				String code = codings[PSEUDO_EOF];
 				out.writeBits(code.length(), Integer.parseInt(code,2));
+				break;
 			}
 			else {
-					String code = codings[bits];
+				String code = codings[bits];
 				if (code == null && code == null) { // leaf node
 					//if (current.myValue == PSEUDO_EOF) {
 						break;	// out of the loop
 					}
-				else {
 					out.writeBits(code.length(), Integer.parseInt(code,2)); // you write 8
 					//current = root; // start back after leaf
 		
@@ -79,7 +79,6 @@ public class HuffProcessor {
 				}
 			}
 		}
-	}
 		
 	private void writeHeader(HuffNode root, BitOutputStream out) {
 		// if not a leaf, write a single bit of zero
@@ -102,7 +101,6 @@ public class HuffProcessor {
 	}
 
 	private void codingHelper(HuffNode root, String string, String[] encodings) {
-		if (root == null) return;
 		if(root.myLeft == null && root.myRight == null) {
 			encodings[root.myValue] = string;
 			return;
