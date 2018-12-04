@@ -58,6 +58,7 @@ public class HuffProcessor {
 	}
 	
 	private void writeCompressedBits(String[] codings, BitInputStream in, BitOutputStream out) {
+		
 		while (true)
 			{
 			int bits = in.readBits(BITS_PER_WORD);
@@ -68,7 +69,7 @@ public class HuffProcessor {
 			}
 			else {
 				String code = codings[bits];
-				if (code == null && code == null) { // leaf node
+				if (code == null || code == null) { // leaf node
 					//if (current.myValue == PSEUDO_EOF) {
 						break;	// out of the loop
 					}
@@ -82,15 +83,15 @@ public class HuffProcessor {
 		
 	private void writeHeader(HuffNode root, BitOutputStream out) {
 		// if not a leaf, write a single bit of zero
-		if(root.myLeft != null || root.myRight != null) {
-			out.writeBits(1,0);
-			writeHeader(root.myLeft, out);
-			writeHeader(root.myRight, out);
-			}
-		else {
+		if(root.myLeft == null && root.myRight == null) {
 			int sum = BITS_PER_WORD + 1;
 			out.writeBits(1, 1);
 			out.writeBits(sum , root.myValue);
+			}
+		else {
+			out.writeBits(1,0);
+			writeHeader(root.myLeft, out);
+			writeHeader(root.myRight, out);
 		}}
 
 	private String[] makeCodingsFromTree(HuffNode root) {
@@ -108,8 +109,6 @@ public class HuffProcessor {
 		}
 		codingHelper(root.myLeft, string+"0", encodings);
 		codingHelper(root.myRight, string+"1", encodings);
-		
-
 		
 	}
 
@@ -136,8 +135,21 @@ public class HuffProcessor {
 	}
 
 	private int[] readForCounts(BitInputStream in) {
-		// TODO Auto-generated method stub
-		return null;
+		//Determine the frequency of every eight-bit character/chunk in the file being compressed
+		int [] frequency = new int[ALPH_SIZE +1];
+		//  You'll need explicitly set freq[PSEUDO_EOF] = 1 for the array to indicate there is one occurrence of the value PSEUDO_EOF. 
+		frequency[PSEUDO_EOF] = 1;
+		
+		while (true) {
+			int bits = in.readBits(BITS_PER_WORD);
+			if (bits == -1) {
+				break;
+			} else {
+				frequency[bits]++;
+			}
+		}
+		
+		return frequency;
 	}
 
 	/**
