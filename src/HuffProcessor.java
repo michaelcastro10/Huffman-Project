@@ -64,21 +64,17 @@ public class HuffProcessor {
 			if (bits == -1) {
 				String code = codings[PSEUDO_EOF];
 				out.writeBits(code.length(), Integer.parseInt(code,2));
-				break;
 			}
-			else {
 				String code = codings[bits];
-				if (code == null || code == null) { // leaf node
+				out.writeBits(code.length(), Integer.parseInt(code,2));
+				//if (code == null || code == null) { // leaf node
 					//if (current.myValue == PSEUDO_EOF) {
-						break;	// out of the loop
-					}
-					out.writeBits(code.length(), Integer.parseInt(code,2)); // you write 8
+						//break;	// out of the loop
+					//} // you write 8
 					//current = root; // start back after leaf
-		
-			
 				}
 			}
-		}
+		
 		
 	public void writeHeader(HuffNode root, BitOutputStream out) { 
 		if (root == null) return;
